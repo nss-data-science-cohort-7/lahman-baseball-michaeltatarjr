@@ -30,6 +30,7 @@
 
 
 -- 2. Using the fielding table, group players into three groups based on their position: label players with position OF as "Outfield", those with position "SS", "1B", "2B", and "3B" as "Infield", and those with position "P" or "C" as "Battery". Determine the number of putouts made by each of these three groups in -- 2016.
+-- answer: Battery=938, Infield=661, Outfield=354
 
 -- SELECT 
 -- CASE WHEN pos='OF' THEN 'Outfield'
@@ -43,7 +44,7 @@
  
  
 -- 3. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends? (Hint: For this question, you might find it helpful to look at the generate_series function (https://www.postgresql.org/docs/9.1/functions-srf.html). If you want to see an example of this in action, check out this DataCamp video: https://campus.datacamp.com/courses/exploratory-data-analysis-in-sql/summarizing-and-aggregating-numeric-data?ex=6)
-
+-- answer: Both strikeouts and homeruns have increased considerably over time, but appear to have leveled off the last few years.
 
 -- -- create bins
 -- WITH bins AS (
@@ -61,6 +62,8 @@
 
 
 -- 4. Find the player who had the most success stealing bases in 2016, where success is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted at least 20 stolen bases. Report the players' names, number of stolen bases, number of attempts, and stolen base percentage.
+-- answer = It appears that Jonathan Villar is the most successful base stealer for 2016.
+
 
 -- WITH totals AS (
 -- 	SELECT *,
@@ -81,8 +84,37 @@
 -- ORDER BY sb_percentage DESC;
 
 
-
 -- 5. From 1970 to 2016, what is the largest number of wins for a team that did not win the world series? What is the smallest number of wins for a team that did win the world series? Doing this will probably result in an unusually small number of wins for a world series champion; determine why this is the case. Then redo your query, excluding the problem year. How often from 1970 to 2016 was it the case that a team with the most wins also won the world series? What percentage of the time?
+answers:
+-- Largest number of wins: 116
+-- Smallest number of wins: 63 (due to the strike of 1981)
+-- Smallest number of wins: 74 (excluding the strike year of 1981)
+
+--teams that did not win the world series, ordered by year DESC
+WITH nws AS(SELECT
+w,
+teamid,
+wswin AS ws_win,
+yearid
+FROM teams
+WHERE 
+--wswin = 'N' 
+--AND 
+yearid BETWEEN 1970 AND 2016
+AND yearid != 1981
+ORDER BY yearid DESC)
+--Max number of games won by year, excluding 1981
+SELECT
+  nws.ws_win,
+  MAX(nws.w),
+  nws.yearid AS year
+FROM teams
+INNER JOIN nws
+USING(teamid)
+GROUP BY year, 1
+ORDER BY MAX(nws.w) ASC;
+
+
 
 -- 6. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
 
