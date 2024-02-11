@@ -31,22 +31,56 @@
 
 -- 2. Using the fielding table, group players into three groups based on their position: label players with position OF as "Outfield", those with position "SS", "1B", "2B", and "3B" as "Infield", and those with position "P" or "C" as "Battery". Determine the number of putouts made by each of these three groups in -- 2016.
 
-SELECT 
-CASE WHEN pos='OF' THEN 'Outfield'
-	 WHEN pos IN ('SS', '1B', '2B', '3B') THEN 'Infield'
-	 WHEN pos IN ('P', 'C') THEN 'Battery'
-	 ELSE 'Benchwarmer' END AS group_position,
-	 COUNT(po) AS force_outs
-FROM fielding
-WHERE yearid = '2016'
-GROUP BY 1;
+-- SELECT 
+-- CASE WHEN pos='OF' THEN 'Outfield'
+-- 	 WHEN pos IN ('SS', '1B', '2B', '3B') THEN 'Infield'
+-- 	 WHEN pos IN ('P', 'C') THEN 'Battery'
+-- 	 ELSE 'Benchwarmer' END AS group_position,
+-- 	 COUNT(po) AS force_outs
+-- FROM fielding
+-- WHERE yearid = '2016'
+-- GROUP BY 1;
+ 
  
 -- 3. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends? (Hint: For this question, you might find it helpful to look at the generate_series function (https://www.postgresql.org/docs/9.1/functions-srf.html). If you want to see an example of this in action, check out this DataCamp video: https://campus.datacamp.com/courses/exploratory-data-analysis-in-sql/summarizing-and-aggregating-numeric-data?ex=6)
 
 
+-- -- create bins
+-- WITH bins AS (
+--     SELECT generate_series(1920, 2010, 10) AS lower,
+--            generate_series(1930, 2020, 10) AS upper)
+-- -- count values in each bin
+-- SELECT lower, upper, ROUND(AVG(sto.so), 2) AS avg_strikeouts,  ROUND(AVG(sto.hr), 2) AS avg_homeruns
+-- -- left join keeps bins
+--  FROM bins
+--    LEFT JOIN batting AS sto
+--        ON yearid >= lower
+--        AND yearid < upper
+-- GROUP BY lower, upper
+-- ORDER BY lower;
 
 
 -- 4. Find the player who had the most success stealing bases in 2016, where success is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted at least 20 stolen bases. Report the players' names, number of stolen bases, number of attempts, and stolen base percentage.
+
+-- WITH totals AS (
+-- 	SELECT *,
+-- 		(sb+cs) AS sb_total,
+-- 		(sb+cs / cs) AS sb_percentage
+--     FROM batting
+--     WHERE yearid=2016)
+-- SELECT 
+--   p.namefirst,
+--   p.namelast,
+--   sb,
+--   sb_total,
+--   sb_percentage
+-- FROM people AS p
+-- JOIN totals
+-- USING(playerid)
+-- WHERE sb_total >= 20
+-- ORDER BY sb_percentage DESC;
+
+
 
 -- 5. From 1970 to 2016, what is the largest number of wins for a team that did not win the world series? What is the smallest number of wins for a team that did win the world series? Doing this will probably result in an unusually small number of wins for a world series champion; determine why this is the case. Then redo your query, excluding the problem year. How often from 1970 to 2016 was it the case that a team with the most wins also won the world series? What percentage of the time?
 
