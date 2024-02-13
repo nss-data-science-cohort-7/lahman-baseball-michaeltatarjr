@@ -46,51 +46,74 @@
 -- 3. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends? (Hint: For this question, you might find it helpful to look at the generate_series function (https://www.postgresql.org/docs/9.1/functions-srf.html). If you want to see an example of this in action, check out this DataCamp video: https://campus.datacamp.com/courses/exploratory-data-analysis-in-sql/summarizing-and-aggregating-numeric-data?ex=6)
 -- answer: Both strikeouts and homeruns have increased considerably over time, but appear to have leveled off the last few years.
 
--- -- create bins
--- WITH bins AS (
---     SELECT generate_series(1920, 2010, 10) AS lower,
---            generate_series(1930, 2020, 10) AS upper)
--- -- count values in each bin
--- SELECT lower, upper, ROUND(AVG(sto.so), 2) AS avg_strikeouts,  ROUND(AVG(sto.hr), 2) AS avg_homeruns
--- -- left join keeps bins
---  FROM bins
---    LEFT JOIN batting AS sto
---        ON yearid >= lower
---        AND yearid < upper
--- GROUP BY lower, upper
--- ORDER BY lower;
+-- Q FOR MICHAEL, per game strikeout, how does the * 1.0 thing work? Literally just saw it in an article and thought about using it.  
+
+-- create bins
+WITH bins AS (
+    SELECT generate_series(1920, 2010, 10) AS lower,
+           generate_series(1930, 2020, 10) AS upper)
+-- count values in each bin
+SELECT 
+	lower, 
+	upper, 
+	ROUND(SUM(sto.so * 1.0)/SUM(ghome * 1.0), 2) AS avg_strikeouts,  
+	ROUND(SUM(sto.hr * 1.0)/SUM(ghome * 1.0), 2) AS avg_homeruns
+-- left join keeps bins
+ FROM teams as sto
+   LEFT JOIN bins AS b
+       ON yearid >= lower
+       AND yearid < upper
+GROUP BY lower, upper
+ORDER BY lower;
 
 
 -- 4. Find the player who had the most success stealing bases in 2016, where success is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted at least 20 stolen bases. Report the players' names, number of stolen bases, number of attempts, and stolen base percentage.
 -- answer = It appears that Jonathan Villar is the most successful base stealer for 2016.
 
+--Q for Michael.  How to cast as a percentage?/Having a problem with percentages...
 
--- WITH totals AS (
--- 	SELECT *,
--- 		(sb+cs) AS sb_total,
--- 		(sb+cs / cs) AS sb_percentage
---     FROM batting
---     WHERE yearid=2016)
--- SELECT 
---   p.namefirst,
---   p.namelast,
---   sb,
---   sb_total,
---   sb_percentage
--- FROM people AS p
--- JOIN totals
--- USING(playerid)
--- WHERE sb_total >= 20
--- ORDER BY sb_percentage DESC;
+WITH totals AS (
+	SELECT *,
+		(sb+cs) AS sb_total,
+	ROUND((sb * 1.0)/((sb+cs) * 1.0), 2) AS sb_percentage
+    FROM batting
+    WHERE yearid=2016)
+SELECT 
+  p.namefirst,
+  p.namelast,
+  sb,
+  cs,
+  sb_total,
+  sb_percentage
+FROM people AS p
+JOIN totals
+USING(playerid)
+WHERE sb_total >= 20
+ORDER BY sb_percentage DESC;
 
 
 -- 5. From 1970 to 2016, what is the largest number of wins for a team that did not win the world series? What is the smallest number of wins for a team that did win the world series? Doing this will probably result in an unusually small number of wins for a world series champion; determine why this is the case. Then redo your query, excluding the problem year. How often from 1970 to 2016 was it the case that a team with the most wins also won the world series? What percentage of the time?
-answers:
--- Largest number of wins: 116
--- Smallest number of wins: 63 (due to the strike of 1981)
--- Smallest number of wins: 74 (excluding the strike year of 1981)
+-- answers:
+-- Largest number of wins for NON WS winner: 116
+-- Smallest number of wins for WS winner: 63 (including the strike of 1981)
+-- Smallest number of wins for WS winner: 74 (excluding the strike year of 1981)
+-- What percentage of the time did a team that won the WS also win the most number of games?: 
+
+--Q For Michael.  Do I need to do a case statement for part 4, or is there and easier way?
 
 --teams that did not win the world series, ordered by year DESC
+-- WITH ws AS(SELECT
+-- w,
+-- teamid,
+-- wswin AS ws_win,
+-- yearid
+-- FROM teams
+-- WHERE 
+-- --wswin = 'N' 
+-- --AND 
+-- yearid BETWEEN 1970 AND 2016
+-- AND yearid != 1981
+-- ORDER BY yearid DESC),
 WITH nws AS(SELECT
 w,
 teamid,
@@ -105,18 +128,31 @@ AND yearid != 1981
 ORDER BY yearid DESC)
 --Max number of games won by year, excluding 1981
 SELECT
-  nws.ws_win,
-  MAX(nws.w),
+  nws.ws_win, 
+  MAX(nws.w) AS not_ws_winner,
   nws.yearid AS year
 FROM teams
 INNER JOIN nws
 USING(teamid)
+--JOIN ws
+--USING(teamid)		   
 GROUP BY year, 1
-ORDER BY MAX(nws.w) ASC;
+ORDER BY year ASC;
 
 
 
 -- 6. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
+
+-- SELECT
+-- playerid, 
+-- awardid,
+-- yearid, 
+-- FROM awardsmanagers
+-- WHERE awardid = 'TSN Manager of the Year';
+
+-- SELECT
+-- lgID
+-- FROM ManagersHalf;
 
 -- 7. Which pitcher was the least efficient in 2016 in terms of salary / strikeouts? Only consider pitchers who started at least 10 games (across all teams). Note that pitchers often play for more than one team in a season, so be sure that you are counting all stats for each player.
 
