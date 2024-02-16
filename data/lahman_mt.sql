@@ -188,7 +188,7 @@ ORDER BY year ASC;
 
 -- 6. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
 
--- league info
+-- -- league info
 -- WITH league AS(SELECT
 -- playerid, 
 -- awardid,
@@ -220,73 +220,66 @@ ORDER BY year ASC;
 
 -- Q for Michael.  How to make the below distinct?
 
--- select out pitcher info. Note that a few pitchers had 0 strikeouts.  
-WITH p AS(SELECT
-playerid,
-SUM(p.so) AS so
-FROM pitching AS p
-WHERE 
---so != '0'
---AND
-GS >= 10
-GROUP BY playerid )
-SELECT
-namefirst || ' ' || namelast AS fullname, 
-playerid,
-SUM(salary)::int::MONEY,
-so,
-(s.salary/so)::int::MONEY AS cost_per_strikeout
-FROM salaries AS s
-JOIN p
-USING(playerid)
-JOIN people
-USING(playerid)
-WHERE yearid = '2016'
-GROUP BY 1, playerid, so, salary
-ORDER BY cost_per_strikeout DESC;
+-- -- select out pitcher info. Note that a few pitchers had 0 strikeouts.  
+-- WITH p AS(SELECT
+-- playerid,
+-- SUM(p.so) AS so
+-- FROM pitching AS p
+-- WHERE 
+-- --so != '0'
+-- --AND
+-- GS >= 10
+-- GROUP BY playerid )
+-- SELECT
+-- namefirst || ' ' || namelast AS fullname, 
+-- playerid,
+-- SUM(salary)::int::MONEY,
+-- so,
+-- (s.salary/so)::int::MONEY AS cost_per_strikeout
+-- FROM salaries AS s
+-- JOIN p
+-- USING(playerid)
+-- JOIN people
+-- USING(playerid)
+-- WHERE yearid = '2016'
+-- GROUP BY 1, playerid, so, salary
+-- ORDER BY cost_per_strikeout DESC;
 
 
 -- 8. Find all players who have had at least 3000 career hits. Report those players' names, total number of hits, and the year they were inducted into the hall of fame (If they were not inducted into the hall of fame, put a null in that column.) Note that a player being inducted into the hall of fame is indicated by a 'Y' in the inducted column of the halloffame table.
 
 -- Q for Michael, again, crazy high hits????
 
-SELECT
-	CASE WHEN h.inducted = 'Y' THEN h.yearID
-	   ELSE NULL END AS inducted,
-	namefirst || ' ' || namelast AS fullname, 
-	playerid,
-	SUM(h) AS hits
-	-- h.yearID
-FROM batting AS b
-JOIN people
-USING(playerid)
-JOIN HallofFame AS h
-USING(playerid)
-GROUP BY 1, 2, 3
-HAVING SUM(h) > 3000
-ORDER BY hits DESC;
+-- SELECT
+-- 	CASE WHEN h.inducted = 'Y' THEN h.yearID
+-- 	   ELSE NULL END AS inducted,
+-- 	namefirst || ' ' || namelast AS fullname, 
+-- 	playerid,
+-- 	SUM(h) AS hits
+-- 	-- h.yearID
+-- FROM batting AS b
+-- JOIN people
+-- USING(playerid)
+-- JOIN HallofFame AS h
+-- USING(playerid)
+-- GROUP BY 1, 2, 3
+-- HAVING SUM(h) > 3000
+-- ORDER BY hits DESC;
 
 
 -- 9. Find all players who had at least 1,000 hits for two different teams. Report those players' full names.
 
-SELECT
-playerid,
-SUM(b.h)
-FROM batting AS b
-JOIN people
-USING(playerid)
-GROUP BY 1
-HAVING SUM(b.h) > 1000;
+-- SELECT
+-- playerid,
+-- SUM(b.h)
+-- FROM batting AS b
+-- JOIN people
+-- USING(playerid)
+-- GROUP BY 1
+-- HAVING SUM(b.h) > 1000;
 
 
 -- 10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
 
 
 
-
--- d.
--- -NOTE: You have to compare integers to integers here.  This doesn't work...
--- CASE WHEN nws.ws_win= 'Y' AND MAX(nws.w) THEN '1'
---            ELSE '0' END AS win_and_win_count,
--- COUNT(yearid) AS yearid_count,
--- ((win_and_win_count * 1.0)/(yearid_count * 1.0)) AS overall,
