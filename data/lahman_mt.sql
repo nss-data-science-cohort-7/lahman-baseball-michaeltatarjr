@@ -269,15 +269,20 @@ ORDER BY year ASC;
 
 -- 9. Find all players who had at least 1,000 hits for two different teams. Report those players' full names.
 
--- SELECT
--- playerid,
--- SUM(b.h)
--- FROM batting AS b
--- JOIN people
--- USING(playerid)
--- GROUP BY 1
--- HAVING SUM(b.h) > 1000;
-
+With hits AS(SELECT
+playerid,
+teamid,
+SUM(b.h)
+FROM batting AS b
+GROUP BY 1, 2
+HAVING SUM(b.h) > 1000)
+SELECT
+namefirst || ' ' || namelast AS fullname
+FROM people AS p
+JOIN hits
+USING(playerid)
+GROUP BY namefirst, namelast
+HAVING COUNT(teamid) > 1;
 
 -- 10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
 
